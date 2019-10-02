@@ -69,7 +69,7 @@ fn run_app() -> Result<(), Box<std::error::Error>> {
   let matches = app_from_crate!()
     .arg(Arg::with_name("boundingpolygon")
       .value_name("BOUNDINGPOLYGON")
-      .help("Bounding WKT polygon")
+      .help("Bounding Well-Known Text (WKT) polygon")
       .required(true)
       .index(1))
     .arg(Arg::with_name("output_file")
@@ -88,7 +88,10 @@ fn run_app() -> Result<(), Box<std::error::Error>> {
       .multiple(true)
       .index(2)
       .required(true))
-    .about("Copyright (c) 2019 Martijn Heil\nGebruik van dit programma is uitsluitend voorbehouden aan Gemeente Lingewaard.")
+    .about("Copyright (c) 2019 Martijn Heil\n\
+        Aan het gebruik van dit programma kunnen geen rechten worden ontleend.\n\
+        Gebruik van dit programma is uitsluitend voorbehouden aan Gemeente Lingewaard.\n\
+        \nProgramma om de Digitale Kadastrale Kaart (DKK) in vector-formaat te downloaden - gefilterd met een bounding polygon - d.m.v. de PDOK DKK Download API.")
     .get_matches();
 
   let bpf = matches.value_of("boundingpolygon").expect("BOUNDINGPOLYGON mag niet leeg zijn.");
