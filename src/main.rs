@@ -129,7 +129,7 @@ fn run_app() -> Result<(), Box<std::error::Error>> {
   //  ],
   let body = object!{
     "featuretypes" => JsonValue::from(layers),
-    "format" => "gml",
+    "format" => "gml", // "gml" is per najaar 2019 ook de enige toegestane waarde.
     "geofilter" => interessegebied
   };
   let requrl = format!("{}{}", root_api_url, "/full/custom");
