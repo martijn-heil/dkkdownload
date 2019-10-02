@@ -1,0 +1,12 @@
+[package]
+name = "dkkdownload"
+version = "0.1.0"
+authors = ["Martijn Heil <m.heil375@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+reqwest = "0.9.20"
+json = "0.12.0"
+clap = "2.33.0"
