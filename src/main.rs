@@ -89,8 +89,7 @@ fn run_app() -> Result<(), Box<std::error::Error>> {
       .index(2)
       .required(true))
     .about("Copyright (c) 2019 Martijn Heil\n\
-        Aan het gebruik van dit programma kunnen geen rechten worden ontleend.\n\
-        Gebruik van dit programma is uitsluitend voorbehouden aan Gemeente Lingewaard.\n\
+        Gebruik van dit programma is uitsluitend voorbehouden aan gemeente Lingewaard.\n\
         \nProgramma om de Digitale Kadastrale Kaart (DKK) in vector-formaat te downloaden - gefilterd met een bounding polygon - d.m.v. de PDOK DKK Download API.")
     .get_matches();
 
