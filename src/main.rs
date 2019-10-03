@@ -63,7 +63,7 @@ fn main() {
   })
 }
 
-fn run_app() -> Result<(), Box<std::error::Error>> {
+fn run_app() -> Result<(), Box<dyn std::error::Error>> {
   let user_agent = format!("DKKdownload v{}", env!("CARGO_PKG_VERSION"));
 
   let matches = app_from_crate!()
@@ -108,7 +108,7 @@ fn run_app() -> Result<(), Box<std::error::Error>> {
 
   let output_filepath = matches.value_of("output_file");
 
-  let mut output_writer: Box<std::io::Write> = match output_filepath {
+  let mut output_writer: Box<dyn std::io::Write> = match output_filepath {
     Some(path) => {
       Box::new(File::create(path)?)
     },
