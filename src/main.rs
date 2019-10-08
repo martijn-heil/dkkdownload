@@ -6,11 +6,14 @@
 extern crate reqwest;
 extern crate json;
 extern crate clap;
+extern crate pbr;
+extern crate tee_readwrite;
 
 use std::thread::sleep;
 use std::time::Duration;
 use std::fs::File;
 use std::fs;
+use std::io::stderr;
 use std::fmt::Display;
 
 use clap::{app_from_crate, crate_name, crate_version, crate_authors, crate_description};
@@ -20,6 +23,9 @@ use reqwest::StatusCode;
 
 use json::object;
 use json::JsonValue;
+
+use pbr::{ProgressBar, Units};
+use tee_readwrite::TeeWriter;
 
 
 #[derive(Debug)]
@@ -88,10 +94,16 @@ fn run_app() -> Result<(), Box<dyn std::error::Error>> {
       .multiple(true)
       .index(2)
       .required(true))
+    .arg(Arg::with_name("progress")
+        .short("p")
+        .long("progress")
+        .help("Geef voortgang weer in stderr."))
     .about("Copyright (c) 2019 Martijn Heil\n\
         Gebruik van dit programma is uitsluitend voorbehouden aan gemeente Lingewaard.\n\
         \nProgramma om de Digitale Kadastrale Kaart (DKK) in vector-formaat te downloaden - gefilterd met een bounding polygon - d.m.v. de PDOK DKK Download API.")
     .get_matches();
+
+  let show_progress = matches.is_present("progress");
 
   let bpf = matches.value_of("boundingpolygon").expect("BOUNDINGPOLYGON mag niet leeg zijn.");
   let interessegebied: String = match matches.is_present("bounding_polygon_is_file") { // Well-Known Text (WKT) polygon string
@@ -152,15 +164,51 @@ fn run_app() -> Result<(), Box<dyn std::error::Error>> {
 
   let reqid: &str = resjson["downloadRequestId"].as_str().expect("Verkregen downloadRequestId van de PDOK API is geen string.");
 
+  let mut progress_foreign = None;
+
+  if show_progress {
+    progress_foreign = Some(ProgressBar::on(stderr(), 100));
+    progress_foreign.as_mut().unwrap().message("PDOK API is bezig met processen ");
+    progress_foreign.as_mut().unwrap().show_tick = true;
+  }
+
   loop {
     let status_url = format!("{}{}{}/status", root_api_url, "/full/custom/", reqid);
     let mut res = client.get(status_url.as_str())
       .header(reqwest::header::USER_AGENT, &user_agent)
       .header(reqwest::header::ACCEPT, "application/json")
       .send()?;
-    match res.status() {
-      StatusCode::OK => { sleep(probing_interval); continue; } // "Full custom download nog niet gereed"
+    match res.status() { // "Full custom download nog niet gereed"
+      StatusCode::OK => {
+        if show_progress {
+          progress_foreign.as_mut().unwrap().tick();
+
+          let restext = res.text();
+          match restext {
+            Ok(text) => {
+              let resjson = json::parse(&text);
+              match resjson {
+                Ok(statusjson) => {
+                  let progress = statusjson["progress"].as_u64();
+                  if let Some(progress) = progress {
+                    progress_foreign.as_mut().unwrap().set(progress);
+                  }
+                }
+                Err(_) => {} // Niks doen
+              }
+            }
+            Err(_) => {} // Niks doen
+          }
+        }
+
+        sleep(probing_interval);
+        continue;
+      }
       StatusCode::CREATED => {
+        if show_progress {
+          progress_foreign.as_mut().unwrap().finish();
+        }
+
         let restext = res.text()?;
         let resjson = json::parse(&restext)?;
         let download_url = format!("{}{}", root_url, resjson["_links"]["download"]["href"]);
@@ -172,6 +220,18 @@ fn run_app() -> Result<(), Box<dyn std::error::Error>> {
           .send()?;
         match zipfileres.status() {
           StatusCode::OK => {
+            if show_progress {
+              if let Some(length) = zipfileres.content_length() {
+                let old_output_writer = output_writer;
+                let mut progress_own = ProgressBar::on(stderr(), length);
+                progress_own.message("ZIP bestand downloaden ");
+                progress_own.set_units(Units::Bytes);
+                output_writer = Box::new(TeeWriter::new(old_output_writer, progress_own));
+                zipfileres.copy_to(&mut output_writer)?;
+                return Ok(());
+              }
+            }
+
             zipfileres.copy_to(&mut output_writer)?;
             return Ok(());
           },
