@@ -70,7 +70,7 @@ fn main() {
 }
 
 fn run_app() -> Result<(), Box<dyn std::error::Error>> {
-  let user_agent = format!("DKKdownload v{}", env!("CARGO_PKG_VERSION"));
+  let user_agent = format!("DKKdownload/{}", env!("CARGO_PKG_VERSION"));
 
   let matches = app_from_crate!()
     .arg(Arg::with_name("boundingpolygon")
