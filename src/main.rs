@@ -216,7 +216,7 @@ fn run_app() -> Result<(), Box<dyn std::error::Error>> {
         // Download url verwijst naar een zip bestand
         let mut zipfileres = client.get(download_url.as_str())
           .header(reqwest::header::USER_AGENT, &user_agent)
-          .header(reqwest::header::ACCEPT, "application/json")
+          .header(reqwest::header::ACCEPT, "application/zip")
           .send()?;
         match zipfileres.status() {
           StatusCode::OK => {
