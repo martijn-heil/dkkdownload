@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2019 Martijn Heil
+ * Copyright (c) 2019-2023 Martijn Heil
  * Alle rechten voorbehouden.
  */
 
@@ -129,8 +129,8 @@ fn run_app() -> Result<(), Box<dyn std::error::Error>> {
     }
   };
 
-  let root_url = "https://downloads.pdok.nl";
-  let root_api_url = format!("{}{}", root_url, "/kadastralekaart/api/v4_0");
+  let root_url = "https://api.pdok.nl";
+  let root_api_url = format!("{}{}", root_url, "/kadaster/kadastralekaart/download/v5_0");
 
   let client = reqwest::Client::new();
 
@@ -139,11 +139,12 @@ fn run_app() -> Result<(), Box<dyn std::error::Error>> {
   //    "perceel",
   //    "kadastralegrens",
   //    "pand",
-  //    "openbareruimtelabel"
+  //    "openbareruimtelabel",
+  //    "kwaliteit"
   //  ],
   let body = object!{
     "featuretypes" => JsonValue::from(layers),
-    "format" => "gml", // "gml" is per najaar 2019 ook de enige toegestane waarde.
+    "format" => "gml", // "gml" is per najaar 2023 ook de enige toegestane waarde.
     "geofilter" => interessegebied
   };
   let requrl = format!("{}{}", root_api_url, "/full/custom");
